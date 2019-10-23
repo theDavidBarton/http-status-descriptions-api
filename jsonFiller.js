@@ -22,26 +22,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-const express = require('express')
-const http = require('./httpStatus.json')
+const puppeteer = require('puppeteer')
+const availableCodes = require('./availableCodes.json')
 
-function endpointCreation() {
-  try {
-    const app = express()
-    const port = process.env.PORT || 5000
+async function jsonFiller() {
+  const browser = await puppeteer.launch({ headless: false })
+  const page = await browser.newPage()
 
-    // providing a dynamic endpoint for status code descriptions
-    app.get('/api/http-status/:statusCode', async (req, res) => {
-      let id = req.params.statusCode
-      http.status[id] ? res.json(http.status[id]) : res.json({ error: 'no such HTTP status code available!' })
-      console.log(`/api/http-status/${id} endpoint has been called!`)
+  for (let i = 0; i < availableCodes.length; i++) {
+    await page.goto(`https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/${availableCodes[i]}`, {
+      waitUntil: 'domcontentloaded',
+      timeout: 0
     })
-
-    app.listen(port)
-
-    console.log(`API is listening on ${port}`)
-  } catch (e) {
-    console.error(e)
+    let currentContent = await page.evaluate(el => el.textContent, (await page.$$('p'))[0])
+    console.log(availableCodes[i])
+    console.log(currentContent)
   }
+  browser.close()
 }
-endpointCreation()
+jsonFiller()
