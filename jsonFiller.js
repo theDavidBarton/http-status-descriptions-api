@@ -24,20 +24,88 @@ SOFTWARE.
 
 const puppeteer = require('puppeteer')
 const availableCodes = require('./availableCodes.json')
+const availableLocales = ['en-US', 'es', 'fr', 'ja', 'pt-BR', 'zh-CN']
+let finalObj = {}
+let obj
+let currentDescription
+let currentName
+let currentType
 
 async function jsonFiller() {
-  const browser = await puppeteer.launch({ headless: false })
+  const browser = await puppeteer.launch({ headless: true })
   const page = await browser.newPage()
 
-  for (let i = 0; i < availableCodes.length; i++) {
-    await page.goto(`https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/${availableCodes[i]}`, {
-      waitUntil: 'domcontentloaded',
-      timeout: 0
-    })
-    let currentContent = await page.evaluate(el => el.textContent, (await page.$$('p'))[0])
-    console.log(availableCodes[i])
-    console.log(currentContent)
+  for (const locale of availableLocales) {
+    for (const code of availableCodes) {
+      try {
+        // scrape current content from MDN references
+        await page.goto(`https://developer.mozilla.org/${locale}/docs/Web/HTTP/Status/${code}`, {
+          waitUntil: 'domcontentloaded',
+          timeout: 0
+        })
+        currentDescription = await page.evaluate(el => el.textContent, (await page.$$('p'))[0]) // TODO: not just the first paragraph!
+        currentName = await page.evaluate(el => el.textContent, await page.$('h1'))
+        currentName = currentName.replace(/\d./g, '')
+
+        if (code < 200) {
+          // (100–199)
+          currentType = 'Informational responses'
+        } else if (code > 199 && code < 300) {
+          // (200–299)
+          currentType = 'Successful responses'
+        } else if (code > 299 && code < 400) {
+          // (300–399)
+          currentType = 'Redirects'
+        } else if (code > 399 && code < 500) {
+          // (400–499)
+          currentType = 'Client errors'
+        } else if (code > 499 && code < 600) {
+          // (500–599)
+          currentType = 'Server errors'
+        }
+      } catch (e) {
+        console.error(e)
+      }
+      // store current content in object
+      try {
+        obj = {
+          status: {
+            [code]: {
+              code: {},
+              type: {},
+              name: {},
+              i18n: {
+                [locale]: {
+                  description: {},
+                  copyright: { license: {}, licenseDetails: {}, source: {}, authors: {}, authorsDetails: {} }
+                }
+              }
+            }
+          }
+        }
+
+        obj.status[code].code = code
+        obj.status[code].type = currentType
+        obj.status[code].name = currentName
+        obj.status[code].i18n[locale].description = currentDescription
+        obj.status[code].i18n[locale].copyright.license = 'CC-BY-SA 2.5.'
+        obj.status[code].i18n[locale].copyright.licenseDetails = 'https://creativecommons.org/licenses/by-sa/2.5/'
+        obj.status[code].i18n[
+          locale
+        ].copyright.source = `https://developer.mozilla.org/${locale}/docs/Web/HTTP/Status/${code}`
+        obj.status[code].i18n[locale].copyright.authors = 'Mozilla Contributors'
+        obj.status[code].i18n[
+          locale
+        ].copyright.authorsDetails = `https://wiki.developer.mozilla.org/${locale}/docs/Web/HTTP/Status/${code}$history`
+
+        finalObj = Object.assign(finalObj, obj) // TODO: improve it like this: https://stackoverflow.com/questions/2454295/how-to-concatenate-properties-from-multiple-javascript-objects
+        console.log(JSON.stringify(finalObj))
+      } catch (e) {
+        console.error(e)
+      }
+    }
   }
+
   browser.close()
 }
 jsonFiller()
