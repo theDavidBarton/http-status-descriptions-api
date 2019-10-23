@@ -23,9 +23,10 @@ SOFTWARE.
 */
 
 const puppeteer = require('puppeteer')
-const availableCodes = require('./availableCodes.json')
+const availableCodes = ['200', '404', '503'] // require('./availableCodes.json')
 const availableLocales = ['en-US', 'es', 'fr', 'ja', 'pt-BR', 'zh-CN']
-let finalObj = {}
+let finalObj = { status: {} }
+let finalElementsArray = []
 let obj
 let currentDescription
 let currentName
@@ -69,42 +70,43 @@ async function jsonFiller() {
       // store current content in object
       try {
         obj = {
-          status: {
-            [code]: {
-              code: {},
-              type: {},
-              name: {},
-              i18n: {
-                [locale]: {
-                  description: {},
-                  copyright: { license: {}, licenseDetails: {}, source: {}, authors: {}, authorsDetails: {} }
-                }
+          //status: {
+          [code]: {
+            code: {},
+            type: {},
+            name: {},
+            i18n: {
+              [locale]: {
+                description: {},
+                copyright: { license: {}, licenseDetails: {}, source: {}, authors: {}, authorsDetails: {} }
               }
             }
           }
+          //}
         }
 
-        obj.status[code].code = code
-        obj.status[code].type = currentType
-        obj.status[code].name = currentName
-        obj.status[code].i18n[locale].description = currentDescription
-        obj.status[code].i18n[locale].copyright.license = 'CC-BY-SA 2.5.'
-        obj.status[code].i18n[locale].copyright.licenseDetails = 'https://creativecommons.org/licenses/by-sa/2.5/'
-        obj.status[code].i18n[
-          locale
-        ].copyright.source = `https://developer.mozilla.org/${locale}/docs/Web/HTTP/Status/${code}`
-        obj.status[code].i18n[locale].copyright.authors = 'Mozilla Contributors'
-        obj.status[code].i18n[
+        obj[code].code = code
+        obj[code].type = currentType
+        obj[code].name = currentName
+        obj[code].i18n[locale].description = currentDescription
+        obj[code].i18n[locale].copyright.license = 'CC-BY-SA 2.5.'
+        obj[code].i18n[locale].copyright.licenseDetails = 'https://creativecommons.org/licenses/by-sa/2.5/'
+        obj[code].i18n[locale].copyright.source = `https://developer.mozilla.org/${locale}/docs/Web/HTTP/Status/${code}`
+        obj[code].i18n[locale].copyright.authors = 'Mozilla Contributors'
+        obj[code].i18n[
           locale
         ].copyright.authorsDetails = `https://wiki.developer.mozilla.org/${locale}/docs/Web/HTTP/Status/${code}$history`
 
-        finalObj = Object.assign(finalObj, obj) // TODO: improve it like this: https://stackoverflow.com/questions/2454295/how-to-concatenate-properties-from-multiple-javascript-objects
-        console.log(JSON.stringify(finalObj))
+        finalElementsArray.push(obj)
+        console.log('===========================')
+        console.log(JSON.stringify(finalElementsArray))
       } catch (e) {
         console.error(e)
       }
     }
   }
+  finalObj = Object.assign(finalObj.status, finalElementsArray.map(el, i => el[i])) // TODO: improve it like this: https://stackoverflow.com/questions/2454295/how-to-concatenate-properties-from-multiple-javascript-objects
+  console.log(JSON.stringify(finalObj))
 
   browser.close()
 }
