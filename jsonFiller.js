@@ -23,10 +23,11 @@ SOFTWARE.
 */
 
 const puppeteer = require('puppeteer')
+const _ = require('lodash')
 const availableCodes = ['200', '404', '503'] // require('./availableCodes.json')
 const availableLocales = ['en-US', 'es', 'fr', 'ja', 'pt-BR', 'zh-CN']
 let finalObj = { status: {} }
-let finalElementsArray = []
+let status = []
 let obj
 let currentDescription
 let currentName
@@ -36,8 +37,8 @@ async function jsonFiller() {
   const browser = await puppeteer.launch({ headless: true })
   const page = await browser.newPage()
 
-  for (const locale of availableLocales) {
-    for (const code of availableCodes) {
+  for (const code of availableCodes) {
+    for (const locale of availableLocales) {
       try {
         // scrape current content from MDN references
         await page.goto(`https://developer.mozilla.org/${locale}/docs/Web/HTTP/Status/${code}`, {
@@ -97,15 +98,20 @@ async function jsonFiller() {
           locale
         ].copyright.authorsDetails = `https://wiki.developer.mozilla.org/${locale}/docs/Web/HTTP/Status/${code}$history`
 
-        finalElementsArray.push(obj)
+        status.push(obj)
         console.log('===========================')
-        console.log(JSON.stringify(finalElementsArray))
+        console.log(JSON.stringify(status))
       } catch (e) {
         console.error(e)
       }
     }
   }
-  finalObj = Object.assign(finalObj.status, finalElementsArray.map(el, i => el[i])) // TODO: improve it like this: https://stackoverflow.com/questions/2454295/how-to-concatenate-properties-from-multiple-javascript-objects
+
+  // https://stackoverflow.com/questions/40774697/how-to-group-an-array-of-objects-by-key
+  finalObj = _.groupBy(status, statusCode => statusCode.code)
+
+  // finalObj.status = Object.assign({ ...status }) // TODO: improve it like this: https://stackoverflow.com/questions/2454295/how-to-concatenate-properties-from-multiple-javascript-objects
+  console.log('FINAL JSON WOWWWWWW ================================================================================')
   console.log(JSON.stringify(finalObj))
 
   browser.close()
