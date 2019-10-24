@@ -27,8 +27,8 @@ const _ = require('lodash')
 const availableCodes = ['200', '404', '503'] // require('./availableCodes.json')
 const availableLocales = ['en-US', 'es', 'fr', 'ja', 'pt-BR', 'zh-CN']
 let finalObj = { status: {} }
-let status = []
 let obj
+let objCollector = []
 let currentDescription
 let currentName
 let currentType
@@ -71,36 +71,38 @@ async function jsonFiller() {
       // store current content in object
       try {
         obj = {
-          //status: {
-          [code]: {
-            code: {},
-            type: {},
-            name: {},
-            i18n: {
-              [locale]: {
-                description: {},
-                copyright: { license: {}, licenseDetails: {}, source: {}, authors: {}, authorsDetails: {} }
+          status: {
+            [code]: {
+              code: {},
+              type: {},
+              name: {},
+              i18n: {
+                [locale]: {
+                  description: {},
+                  copyright: { license: {}, licenseDetails: {}, source: {}, authors: {}, authorsDetails: {} }
+                }
               }
             }
           }
-          //}
         }
 
-        obj[code].code = code
-        obj[code].type = currentType
-        obj[code].name = currentName
-        obj[code].i18n[locale].description = currentDescription
-        obj[code].i18n[locale].copyright.license = 'CC-BY-SA 2.5.'
-        obj[code].i18n[locale].copyright.licenseDetails = 'https://creativecommons.org/licenses/by-sa/2.5/'
-        obj[code].i18n[locale].copyright.source = `https://developer.mozilla.org/${locale}/docs/Web/HTTP/Status/${code}`
-        obj[code].i18n[locale].copyright.authors = 'Mozilla Contributors'
-        obj[code].i18n[
+        obj.status[code].code = code
+        obj.status[code].type = currentType
+        obj.status[code].name = currentName
+        obj.status[code].i18n[locale].description = currentDescription
+        obj.status[code].i18n[locale].copyright.license = 'CC-BY-SA 2.5.'
+        obj.status[code].i18n[locale].copyright.licenseDetails = 'https://creativecommons.org/licenses/by-sa/2.5/'
+        obj.status[code].i18n[
+          locale
+        ].copyright.source = `https://developer.mozilla.org/${locale}/docs/Web/HTTP/Status/${code}`
+        obj.status[code].i18n[locale].copyright.authors = 'Mozilla Contributors'
+        obj.status[code].i18n[
           locale
         ].copyright.authorsDetails = `https://wiki.developer.mozilla.org/${locale}/docs/Web/HTTP/Status/${code}$history`
 
-        status.push(obj)
-        console.log('===========================')
-        console.log(JSON.stringify(status))
+        objCollector.push(obj)
+        console.log('\n===========================')
+        console.log(JSON.stringify(objCollector))
       } catch (e) {
         console.error(e)
       }
@@ -108,8 +110,9 @@ async function jsonFiller() {
   }
 
   // https://stackoverflow.com/questions/40774697/how-to-group-an-array-of-objects-by-key
-  finalObj = _.groupBy(status, statusCode => statusCode.code)
-
+  finalObj = _.groupBy(objCollector, objInstance => objInstance.status)
+  finalObj = _.groupBy(objCollector, objInstance => objInstance.code)
+  finalObj = _.groupBy(objCollector, objInstance => objInstance.i18n)
   // finalObj.status = Object.assign({ ...status }) // TODO: improve it like this: https://stackoverflow.com/questions/2454295/how-to-concatenate-properties-from-multiple-javascript-objects
   console.log('FINAL JSON WOWWWWWW ================================================================================')
   console.log(JSON.stringify(finalObj))
