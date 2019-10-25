@@ -7,7 +7,8 @@
     "express": "^4.17.1"
   },
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "scrape": "node jsonFiller.js"
   },
   "engines": {
     "node": "10.x"

@@ -24,9 +24,11 @@ SOFTWARE.
 
 const puppeteer = require('puppeteer')
 const _ = require('lodash')
-const availableCodes = ['200', '404', '503'] // require('./availableCodes.json')
+const fs = require('fs')
+const availableCodes = require('./availableCodes.json')
 const availableLocales = ['en-US', 'es', 'fr', 'ja', 'pt-BR', 'zh-CN']
 let finalObj = { status: {} }
+let finalObjJSON
 let obj
 let objCollector = []
 let currentDescription
@@ -45,7 +47,8 @@ async function jsonFiller() {
           waitUntil: 'domcontentloaded',
           timeout: 0
         })
-        currentDescription = await page.evaluate(el => el.textContent, (await page.$$('p'))[0]) // TODO: not just the first paragraph!
+
+        currentDescription = await page.evaluate(el => el.textContent, (await page.$$('#wikiArticle > p'))[0]) // TODO: collect all valid paragraphs
         currentName = await page.evaluate(el => el.textContent, await page.$('h1'))
         currentName = currentName.replace(/\d./g, '')
 
@@ -101,22 +104,18 @@ async function jsonFiller() {
         ].copyright.authorsDetails = `https://wiki.developer.mozilla.org/${locale}/docs/Web/HTTP/Status/${code}$history`
 
         objCollector.push(obj)
-        console.log('\n===========================')
-        console.log(JSON.stringify(objCollector))
       } catch (e) {
         console.error(e)
       }
     }
   }
-
-  // https://stackoverflow.com/questions/40774697/how-to-group-an-array-of-objects-by-key
-  finalObj = _.groupBy(objCollector, objInstance => objInstance.status)
-  finalObj = _.groupBy(objCollector, objInstance => objInstance.code)
-  finalObj = _.groupBy(objCollector, objInstance => objInstance.i18n)
-  // finalObj.status = Object.assign({ ...status }) // TODO: improve it like this: https://stackoverflow.com/questions/2454295/how-to-concatenate-properties-from-multiple-javascript-objects
-  console.log('FINAL JSON WOWWWWWW ================================================================================')
-  console.log(JSON.stringify(finalObj))
-
   browser.close()
+
+  // deep merge objects
+  finalObj = _.merge(...objCollector)
+  // write to file
+  finalObjJSON = JSON.stringify(finalObj)
+  console.log(finalObjJSON)
+  fs.writeFileSync('httpStatus.json', finalObjJSON)
 }
 jsonFiller()
