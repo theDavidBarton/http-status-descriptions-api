@@ -1,10 +1,14 @@
 # http-status-descriptions-api
 
-API to provide detailed info in JSON about the existing HTTP stauses, so for example one can use it on the frontend to explain user what a HTTP 502 means when he/she faces an error page.
+API to provide JSON format detailed information about the existing HTTP stauses, so for example one can use it on the frontend to explain users what a HTTP 502 means when he/she faces an error page.
 
-## Usage:
+## Usage
 
-`http://localhost:5000/api/http-status/502`
+### API
+
+`yarn start`
+
+e.g.: `http://localhost:5000/api/http-status/502`
 
 ... will retrieve the HTTP status' description in JSON format e.g.:
 
@@ -13,10 +17,10 @@ API to provide detailed info in JSON about the existing HTTP stauses, so for exa
    "status": {
     "502": {
       "code": 502,
-      "type": "server error",
+      "type": "Server errors",
       "name": "Bad Gateway",
       "i18n": {
-        "en": {
+        "en-US": {
           "description": "The server was acting as a gateway or proxy and received an invalid response from the upstream server.",
           "copyright": {
             "license": "CC-BY-SA 2.5.",
@@ -77,14 +81,20 @@ API to provide detailed info in JSON about the existing HTTP stauses, so for exa
           }
         }
       }
-    },[...]
+    }
 ```
+
+### Updating the content
+
+A puppeteer (headless chrome) script crawls for descriptions on [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status).
+
+Run: `yarn scrape` or `node jsonFiller.js` to update the JSON file.
 
 # Copyright
 
 ## HTTP status descriptions
 
-See in `i18n.${language}.copyright`. Mostly from MDN by Mozilla Contributors licensed under CC-BY-SA 2.5.
+See in `i18n.${locale}.copyright` for each HTTP status. Mostly from MDN by Mozilla Contributors licensed under CC-BY-SA 2.5.
 
 ## Software
 
