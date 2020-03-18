@@ -11,7 +11,7 @@
     "scrape": "node jsonFiller.js"
   },
   "engines": {
-    "node": "10.x"
+    "node": "12.x"
   },
   "devDependencies": {
     "lodash": "^4.17.15",
