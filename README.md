@@ -1,5 +1,8 @@
 # http-status-descriptions-api
 
+[![Dependency Status](https://david-dm.org/theDavidBarton/http-status-descriptions-api.svg)](https://david-dm.org/http-status-descriptions-api)
+![crocodile](https://img.shields.io/badge/crocodiles_in_the_basement-%F0%9F%90%8A_yes-orange.svg)
+
 API to provide JSON format detailed information about the existing HTTP stauses, so for example one can use it on the frontend to explain users what a HTTP 502 means when he/she faces an error page.
 
 ## Usage
